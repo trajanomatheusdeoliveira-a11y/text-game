@@ -31,11 +31,12 @@ class Player {
     public static int inventarioValores[] = new int[6];
     static String inventarioNomes[] = new String[6];
     public static int espacoPrenchido = 0;
-    static int ouro;
+    public int ouro = 0;
     String nome;
     int vida_player;
     int agilidade_player;
     int dano_player;
+    int armadura = 0 ;
 
     public Player() {
         vida_player = Esencias.gerador.nextInt(8) + 6;
@@ -152,22 +153,90 @@ class text_game {
                 case "q" ->{ 
                     jogo_historia(args);
                 }
-                case "l" ->{ //vou programar isso depois quando tiver sistema de inventario e ouro
-                    System.out.println("a loja está fechada");
-                    exploração(args);
+                case "l" ->{ 
+                    int tipo = Esencias.gerador.nextInt(15)+1;
+                    String[] produtosNome = {"Poção de Vitalidade(+20 Vida)", "Botas de Mercúrio(+5 Agilidade)", "Cota de Malha(+6 Armadura)", "Anel do Vigor(+50 Vida)", "Capa da Invisibilidade(+12 Agilidade)", "Espada Longa de Aço(+15 Dano)", "Armadura de Placas Real(+25 Armadura -2 Agilidade)", "Elmo de Ferro(+4 Armadura)"};
+                    String[] produtosValor = {"5", "15", "25", "40", "60", "80", "120", "30"};
+
+
+                    switch(tipo) {
+                        case 1,2,3,4,5 -> {
+                            System.out.println("-loja pequena-");
+                            System.out.println("""
+                                Você anda um pouco e encontra uma pequena loja, o ambiente é simples porem acolhedor,
+                                há uma uma pequena mesa central com produtos expostos , do outor lado há um pequeno balcão onde um
+                                jovem atendente está sentado esperando por clientes.
+                            """);
+                            for (int i = 0; i <= 3; i++) {
+                                System.out.println(i + ". " + produtosNome[i] + " - Custo: " + produtosValor[i] + " ouros");
+                            }
+                        }
+
+                        case 6,7,8,9,10 -> {
+                            System.out.println("-loja média-");
+                            System.out.println("""
+                                Você anda um pouco e encontra uma loja, o ambiente tem tamanho mèdio ,há duas prateleiras de
+                                exposição em lados opóstos , no centro da loja há um homem alto e sua mulher , que estão
+                                esperando por clientes .
+                            """);
+                            for (int i = 0; i <= 6; i++) {
+                                System.out.println(i + ". " + produtosNome[i] + " - Custo: " + produtosValor[i] + " ouros");
+                            }
+                        }
+
+                        case 11,12,13,14,15 -> {
+                            System.out.println("-loja grande-");
+                            System.out.println("""
+                                Você anda um pouco e encontra uma loja, o ambiente é grande,alto ,há varias prateleiras de
+                                exposição  , no centro da loja há um homem ja idoso  , está atendentendo alguns clientes .
+                            """);
+                            for (int i = 0; i < produtosNome.length; i++) {
+                                System.out.println(i + ". " + produtosNome[i] + " - Custo: " + produtosValor[i] + " ouros");
+                            }
+                        }
                     }
+                    System.out.print("Escolha o número do item: ");
+                    int escolha = Esencias.teclado.nextInt();
+
+                    int precoItem = Integer.parseInt(produtosValor[escolha]);
+
+                    if (jogador.ouro >= precoItem) {
+                        jogador.ouro-= precoItem; // Retira o ouro
+                        
+                        switch (escolha) {
+                            case 0 -> jogador.vida_player += 20;           // Poção
+                            case 1 -> jogador.armadura += 4;               // Elmo
+                            case 2 -> jogador.agilidade_player += 5;       // Botas
+                            case 3 -> jogador.armadura += 6;               // Cota de Malha
+                            case 4 -> jogador.vida_player += 50;           // Anel
+                            case 5 -> jogador.agilidade_player += 12;      // Capa
+                            case 6 -> jogador.dano_player += 15;           // Espada
+                            case 7 -> {                            // Armadura Placas
+                                jogador.armadura += 25;
+                                jogador.agilidade_player -= 2;
+                            }
+                            default -> System.out.println("Item inválido!");
+                        }
+                        System.out.println("Compra realizada com sucesso!");
+                    } else {
+                        System.out.println("Ouro insuficiente!");
+                    }
+                    exploração(args);
+                }
                 case "s" -> {
                     exploração(args);
                     break;
                 }
-                default -> System.out.println("indisponivel");
+                default -> {
+                    System.out.println("indisponivel");
+                    exploração(args);
             }
-
-       }
+        }
+    }
 
        //no inicio isso era uma "historia para o jogo"
        //agora esta mais para algum tipo de "missão"
-       private static void jogo_historia(String[] args) {
+    private static void jogo_historia(String[] args) {
 		
             int historia1 = Esencias.gerador.nextInt(4)+1;
             int historia2 = Esencias.gerador.nextInt(4)+1;
@@ -248,14 +317,16 @@ class text_game {
                 System.out.println("O " + enemy.nome + " ainda tem " + enemy.vida + " de vida.");
 
                 // Contra-ataque
-                jogador.vida_player -= enemy.dano;
+                int danoFinal = Math.max(0, enemy.dano - jogador.armadura);
+                jogador.vida_player -= danoFinal;
                 System.out.println("O " + enemy.nome + " revida e causa " + enemy.dano + " de dano!");
                 System.out.println("Sua vida agora é: " + jogador.vida_player);
 
                 } else {
 
                     System.out.println("\nO " + enemy.nome + " é mais rápido e ataca primeiro!");
-                    jogador.vida_player -= enemy.dano;
+                    int danoFinal = Math.max(0, enemy.dano - jogador.armadura);
+                    jogador.vida_player -= danoFinal;
 
                     System.out.println("Você sofre " + enemy.dano + " de dano! (Vida atual: " + jogador.vida_player + ")");
 
@@ -467,20 +538,20 @@ class text_game {
        switch (tipoLoot) {
            case 0 -> {
                item = "runa da afiação (+2 dano)";
-               efeito = jogador.dano_player += 2;
+               efeito += 2;
            }
            case 1 -> {
                item = "runa do fogo (+5 dano)";
-               efeito = jogador.dano_player += 5;
+               efeito += 5;
            }
            case 2 -> {
                item = "runa de dando forte (+10 dano)";
-               efeito = jogador.dano_player += 10;
+               efeito += 10;
            }
            case 3 -> {
                item = "runa pesada (+15 dano, -5 agilidade)";
                jogador.dano_player += 15;
-               efeito = jogador.agilidade_player -= 5;
+               efeito -= 5;
            }
            case 4 -> {
                item = "runa da vitalidade";
@@ -488,7 +559,7 @@ class text_game {
            }
            case 5 -> {
                item = "runa da Agilidade (+10 agilidade)";
-               efeito = jogador.agilidade_player += 10;
+               efeito  += 10;
            }
        }
 
@@ -502,6 +573,11 @@ class text_game {
             if(Player.espacoPrenchido < Player.inventarioNomes.length){
                 Player.inventarioNomes[Player.espacoPrenchido]=item;
                 Player.inventarioValores[Player.espacoPrenchido]= efeito;
+                switch (tipoLoot) {
+                    case 0,1,2 -> jogador.dano_player = efeito;
+                    case 3,5 -> jogador.agilidade_player = efeito;
+                    case 4 -> jogador.vida_player = efeito;
+                }
                 Player.espacoPrenchido++;
                 return item;
             }
